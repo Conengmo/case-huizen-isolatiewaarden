@@ -1,8 +1,8 @@
+import csv
 from dataclasses import replace
 from typing import List
 
 import numpy as np
-from pytablewriter import MarkdownTableWriter
 
 from lib import Huis, load_data
 
@@ -74,11 +74,10 @@ def main():
 
         values_matrix.append(values)
 
-    writer = MarkdownTableWriter(
-        headers=header,
-        value_matrix=values_matrix,
-    )
-    writer.write_table()
+    with open('../data/scenario_per_gebouw.csv', 'w') as f:
+        writer = csv.writer(f, lineterminator='\n')
+        writer.writerow(header)
+        writer.writerows(values_matrix)
 
 
 if __name__ == "__main__":

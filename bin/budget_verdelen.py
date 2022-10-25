@@ -1,8 +1,7 @@
+import csv
 from collections import namedtuple
 from dataclasses import replace
-from typing import Dict, List, Tuple
-
-from pytablewriter import MarkdownTableWriter
+from typing import Dict, List
 
 from lib import Huis, load_data
 
@@ -96,11 +95,11 @@ def main():
                 ]
             )
         values_matrix.append(values)
-    writer = MarkdownTableWriter(
-        headers=header,
-        value_matrix=values_matrix,
-    )
-    writer.write_table()
+
+    with open('../data/budget_verdeeld.csv', 'w') as f:
+        writer = csv.writer(f, lineterminator='\n')
+        writer.writerow(header)
+        writer.writerows(values_matrix)
 
 
 def get_maatregel_combinaties(idx_huis: int, huis: Huis) -> List[HuisMaatregel]:
