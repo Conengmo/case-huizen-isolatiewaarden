@@ -1,66 +1,52 @@
+from collections import namedtuple
 from dataclasses import replace
-from typing import List
+from typing import Dict, List, Tuple
 
-import numpy as np
 from pytablewriter import MarkdownTableWriter
-from tqdm import tqdm
 
 from lib import Huis, load_data
 
-
 BUDGET = 100_000
+
+
+HuisMaatregel = namedtuple(
+    "HuisMaatregel", ["idx_huis", "idx_maatregel", "besparing", "kosten"]
+)
 
 
 def main():
     huizen: List[Huis] = load_data()
 
-    besparingen = np.empty((len(huizen), 3))
-    for i, huis in enumerate(huizen):
-        bereken_besparing(huis, besparingen, i)
+    alle_maatregelen = []
+    winnende_maatregelen_per_huis = []
+    for idx_huis, huis in enumerate(huizen):
+        maatregel_combinaties = get_maatregel_combinaties(idx_huis, huis)
+        alle_maatregelen.append(maatregel_combinaties)
+        winnende_maatregelen_per_huis.append(
+            max(maatregel_combinaties, key=lambda x: x.besparing)
+        )
 
-    _budget = BUDGET
-    maatregelen = np.zeros((len(huizen), 3), dtype=bool)
+    winnende_maatregelen_per_huis = sorted(
+        winnende_maatregelen_per_huis, key=lambda x: x.besparing, reverse=True
+    )
+
+    totale_kosten = 0
     totale_besparing = 0
-    pbar = tqdm()
-    while _budget > 0:
-        pbar.update()
-        pbar.set_description(str(_budget))
-
-        # welk huis en maatregel heeft de hoogste besparing?
-        idx_tuple = np.unravel_index(np.argmax(besparingen, axis=None), besparingen.shape)
-        idx_winnende_huis = int(idx_tuple[0])
-        winnende_huis = huizen[idx_winnende_huis]
-        # maar alleen als de besparing positief is
-        if besparingen[idx_tuple] <= 0:
-            print('exit early')
+    geselecteerde_huizen_en_maatregelen: Dict[int, int] = {}
+    for maatregel in winnende_maatregelen_per_huis:
+        if maatregel.besparing <= 0:
             break
+        if totale_kosten + maatregel.kosten > BUDGET:
+            # we stoppen nog niet met zoeken, misschien is een volgende maatregel goedkoper
+            continue
+        totale_kosten += maatregel.kosten
+        totale_besparing += maatregel.besparing
+        geselecteerde_huizen_en_maatregelen[
+            maatregel.idx_huis
+        ] = maatregel.idx_maatregel
 
-        # pas de maatregel toe
-        kosten_vooraf = winnende_huis.kosten
-        maatregel_idx = idx_tuple[1]
-        if maatregel_idx == 0:
-            winnende_huis.vervang_ketel()
-        elif maatregel_idx == 1:
-            winnende_huis.toepassen_gevelisolatie()
-        elif maatregel_idx == 2:
-            winnende_huis.toepassen_dakisolatie()
-
-        # werk het budget bij
-        kosten_maatregel = winnende_huis.kosten - kosten_vooraf
-        _budget -= kosten_maatregel
-
-        # sla de winnende maatregel op in de output matrix
-        maatregelen[idx_tuple] = True
-        totale_besparing += besparingen[idx_tuple]
-
-        # update de besparingen van het winnende huis (de rest is nog hetzelfde)
-        bereken_besparing(winnende_huis, besparingen, idx_winnende_huis)
-        # maar neem huizen + maatregelen die al hebben gewonnen niet meer mee
-        besparingen[maatregelen] = 0
-
-    pbar.close()
-
-    print('totale besparing:', totale_besparing)
+    print("totale besparing:", totale_besparing)
+    print("totale kosten:", totale_kosten)
 
     header = [
         "",
@@ -69,22 +55,46 @@ def main():
         "gevel isolatie",
         "dak opp.",
         "dak isolatie",
+        "gekozen",
+        "iso.w. voor",
+        "iso.w. na",
+    ]
+    maatregel_strs = [
         "ketel",
         "gevel",
         "dak",
+        "ketel + gevel",
+        "ketel + dak",
+        "gevel + dak",
+        "ketel + gevel + dak",
     ]
     values_matrix = []
-    # gebruik de oorspronkelijke woningdata voor de output
-    for i, huis in enumerate(load_data()):
+    for idx_huis, huis in enumerate(huizen):
         values = [
-            i + 1,
+            idx_huis + 1,
             round(huis.ketel_efficientie, 4),
             round(huis.gevel_oppervlak, 2),
             round(huis.gevel_isolatiewaarde, 4),
             round(huis.dak_oppervlak, 2),
             round(huis.dak_isolatiewaarde, 4),
-            *['ja' if maatregelen[i, j] else '' for j in range(0, 3)]
         ]
+        if idx_maatregel := geselecteerde_huizen_en_maatregelen.get(idx_huis):
+            pas_maatregel_toe(huis, idx_maatregel)
+            values.extend(
+                [
+                    maatregel_strs[idx_maatregel],
+                    round(huis.isolatiewaarde_oorspronkelijk, 2),
+                    round(huis.isolatiewaarde, 2),
+                ]
+            )
+        else:
+            values.extend(
+                [
+                    "",
+                    round(huis.isolatiewaarde_oorspronkelijk, 2),
+                    "",
+                ]
+            )
         values_matrix.append(values)
     writer = MarkdownTableWriter(
         headers=header,
@@ -93,18 +103,42 @@ def main():
     writer.write_table()
 
 
-def bereken_besparing(huis: Huis, besparingen_matrix: np.ndarray, i: int):
-    scenario = replace(huis)
-    scenario.vervang_ketel()
-    besparingen_matrix[i, 0] = scenario.bereken_netto_besparing()
+def get_maatregel_combinaties(idx_huis: int, huis: Huis) -> List[HuisMaatregel]:
+    maatregel_combinaties: List[HuisMaatregel] = []
+    for idx_maatregel in range(7):
+        scenario = replace(huis)
+        pas_maatregel_toe(scenario, idx_maatregel)
+        maatregel_combinaties.append(
+            HuisMaatregel(
+                idx_huis,
+                idx_maatregel,
+                scenario.bereken_netto_besparing(),
+                scenario.kosten,
+            )
+        )
+    return maatregel_combinaties
 
-    scenario = replace(huis)
-    scenario.toepassen_gevelisolatie()
-    besparingen_matrix[i, 1] = scenario.bereken_netto_besparing()
 
-    scenario = replace(huis)
-    scenario.toepassen_dakisolatie()
-    besparingen_matrix[i, 2] = scenario.bereken_netto_besparing()
+def pas_maatregel_toe(huis: Huis, maatregel_idx: int):
+    if maatregel_idx == 0:
+        huis.vervang_ketel()
+    elif maatregel_idx == 1:
+        huis.toepassen_gevelisolatie()
+    elif maatregel_idx == 2:
+        huis.toepassen_dakisolatie()
+    elif maatregel_idx == 3:
+        huis.vervang_ketel()
+        huis.toepassen_gevelisolatie()
+    elif maatregel_idx == 4:
+        huis.vervang_ketel()
+        huis.toepassen_dakisolatie()
+    elif maatregel_idx == 5:
+        huis.toepassen_gevelisolatie()
+        huis.toepassen_dakisolatie()
+    elif maatregel_idx == 6:
+        huis.vervang_ketel()
+        huis.toepassen_gevelisolatie()
+        huis.toepassen_dakisolatie()
 
 
 if __name__ == "__main__":

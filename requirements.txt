@@ -2,4 +2,3 @@ jupyter
 matplotlib
 pytablewriter
 numpy
-tqdm
