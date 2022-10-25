@@ -177,8 +177,9 @@ In [bin/budget_verdelen.py](https://github.com/Conengmo/case-huizen-isolatiewaar
 is de beschreven methode geimplementeerd. Ik heb een budget aangenomen van € 100,000. De resultaten
 zijn te vinden
 in [data/budget_verdeeld.csv](https://github.com/Conengmo/case-huizen-isolatiewaarden/blob/main/data/budget_verdeeld.csv)
-. De eerste kolommen bevatten de woningdata. Daarna volgen de netto besparingen per
-maatregelcombinatie. De laatste kolom bevat welke maatregelen zijn gekozen binnen het budget.
+. De eerste kolommen bevatten de woningdata. Daarna volgt welke maatregelen voor elke woning zijn
+gekozen binnen het budget. Vervolgens de totale isolatiewaarde bij aanvang en na toepassing van de
+maatregelen.
 
 De totale netto besparing is € 290,106 na aftrek van € 99,926 aan kosten.
 

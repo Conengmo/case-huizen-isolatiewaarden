@@ -48,15 +48,14 @@ def main():
     print("totale kosten:", totale_kosten)
 
     header = [
-        "",
         "ketel eff.",
         "gevel opp.",
         "gevel isolatie",
         "dak opp.",
         "dak isolatie",
         "gekozen",
-        "iso.w. voor",
-        "iso.w. na",
+        "isolatiew. voor",
+        "isolatiew. na",
     ]
     maatregel_strs = [
         "ketel",
@@ -70,7 +69,6 @@ def main():
     values_matrix = []
     for idx_huis, huis in enumerate(huizen):
         values = [
-            idx_huis + 1,
             round(huis.ketel_efficientie, 4),
             round(huis.gevel_oppervlak, 2),
             round(huis.gevel_isolatiewaarde, 4),
