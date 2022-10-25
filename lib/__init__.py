@@ -41,14 +41,17 @@ class Huis:
         self.dak_isolatiewaarde = min(0.85, self.dak_isolatiewaarde + 0.2)
         self.kosten += 25 * self.dak_oppervlak
 
-    def bereken_netto_besparing(self) -> float:
+    def bereken_bruto_besparing(self) -> float:
         isolatiewaarde_delta = self.isolatiewaarde - self.isolatiewaarde_oorspronkelijk
         besparing = (
             isolatiewaarde_delta
             * BESPARING_PER_ISOLATIEWAARDE_PER_JAAR
             * LOOPTIJD_JAREN
         )
-        return round(besparing - self.kosten, 2)
+        return besparing
+
+    def bereken_netto_besparing(self) -> float:
+        return round(self.bereken_bruto_besparing() - self.kosten, 2)
 
 
 def load_data() -> List[Huis]:

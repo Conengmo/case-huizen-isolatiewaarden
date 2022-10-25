@@ -167,9 +167,23 @@ combinatie kunnen berekenen. Heuristieken of optimalisatiealgoritmen zullen niet
 ### Algoritme
 
 Voor iedere woning berekenen we de besparing bij ieder van de 8 maatregelcombinaties. Vervolgens
-kiezen we voor iedere woning de beste maatregelcombinatie. We sorteren de woningen op basis van de
-besparing die de gekozen maatregelcombinatie oplevert. Dan selecteren we van deze gesorteerde lijst
-met woningen totdat het budget op is.
+kiezen we voor iedere woning de beste maatregelcombinatie. We sorteren de woningen op basis van een
+kostfunctie. Dan selecteren we van deze gesorteerde lijst met woningen totdat het budget op is.
+
+### Kostfunctie
+
+In het vorige deel, waarin we de maatregelen per gebouw bekeken, kozen we die aan de hand van de
+besparing **minus** de kosten. Dit omdat we daar in principe onbeperkt budget hebben, en alleen
+geinteresseerd zijn in de grootst mogelijke opbrengst.
+
+Dat had ik in eerste instantie ook in deze stap toegepast. Maar omdat de besparingen hoger zijn dan
+de kosten, hebben de besparingen ook een groter effect in het selecteren dan de kosten. Hierdoor
+werd het budget sneller opgemaakt door grote maatregelen bij minder huizen.
+
+Omdat we nu een budget hebben, zouden de kosten ook belangrijk moeten zijn. Om dit te bereiken nemen
+we nu als kostfunctie de bruto besparing **gedeeld door** de kosten. Hierdoor is het een reflectie
+van de vraag: hoeveel euro levert het me op per gespendeerde euro? Oftewel, wat geeft de meeste
+'bang for buck'.
 
 ### Resultaten
 
@@ -181,16 +195,11 @@ in [data/budget_verdeeld.csv](https://github.com/Conengmo/case-huizen-isolatiewa
 gekozen binnen het budget. Vervolgens de totale isolatiewaarde bij aanvang en na toepassing van de
 maatregelen.
 
-De totale netto besparing is € 290,106 na aftrek van € 99,926 aan kosten.
+De totale netto besparing is € 296,684, na aftrek van € 99,901 aan kosten, waarbij 58 woningen
+worden behandeld.
 
-Huizen met grote gevels en daken krijgen eerder een isolatieupgrade, dat lijkt intuitief.
-
-Wat opvalt is dat met de huidige formule grotere getallen lijken te worden bevoordeeld. Hierdoor
-worden huizen die al goed presteren nog verder geupgrade ten koste van huizen die een mindere
-uitgangspositie hebben.
-
-Woning nummer 71 heeft maar een hele kleine upgrade gehad, dat komt omdat deze als laatste is
-geselecteerd om het budget nog zoveel mogelijk vol te maken.
+Omdat het algoritme een balans zoekt tussen besparing en kosten is het minder intuitief om de tabel
+met uitkomsten af te lezen.
 
 
 ### Discussie
@@ -205,6 +214,11 @@ tussen ketel en isolatie en een beter model voor wat de verschillende maatregele
 opleveren.
 
 De uitkomst is niet eerlijk, sommige woningen krijgen alle drie de maatregelen terwijl anderen niks
-krijgen. Om tot een eerlijkere verdeling van het budget te komen, zouden we de kostfunctie kunnen
-aanpassen. Bijvoorbeeld door lagere isolatiewaardes te prioriteren of meerdere maatregelen per
-woning te ontmoedigen.
+krijgen. Ook zijn er woningen die al goed presteren maar toch nog een upgrade krijgen. Als
+eerlijkheid belangrijk is, zouden we de kostfunctie hiervoor kunnen aanpassen. Bijvoorbeeld door
+lagere isolatiewaardes te prioriteren of meerdere maatregelen per woning te ontmoedigen.
+
+De kostfunctie moet een balans zoeken tussen besparing en kosten, hierin zijn ook andere functies
+mogelijk. De huidige aanpak is al een verbetering op de vorige, waar de kosten van de besparing
+werden afgetrokken. Uiteindelijk besparen we nu € 6678 meer en worden 58 huizen geholpen in plaats
+van 26.

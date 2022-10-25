@@ -9,7 +9,7 @@ BUDGET = 100_000
 
 
 HuisMaatregel = namedtuple(
-    "HuisMaatregel", ["idx_huis", "idx_maatregel", "besparing", "kosten"]
+    "HuisMaatregel", ["idx_huis", "idx_maatregel", "besparing", "kosten", "criterium"]
 )
 
 
@@ -22,19 +22,19 @@ def main():
         maatregel_combinaties = get_maatregel_combinaties(idx_huis, huis)
         alle_maatregelen.append(maatregel_combinaties)
         winnende_maatregelen_per_huis.append(
-            max(maatregel_combinaties, key=lambda x: x.besparing)
+            max(maatregel_combinaties, key=lambda x: x.criterium)
         )
 
     winnende_maatregelen_per_huis = sorted(
-        winnende_maatregelen_per_huis, key=lambda x: x.besparing, reverse=True
+        winnende_maatregelen_per_huis, key=lambda x: x.criterium, reverse=True
     )
 
     totale_kosten = 0
     totale_besparing = 0
     geselecteerde_huizen_en_maatregelen: Dict[int, int] = {}
     for maatregel in winnende_maatregelen_per_huis:
-        if maatregel.besparing <= 0:
-            break
+        if maatregel.besparing - maatregel.kosten <= 0:
+            continue
         if totale_kosten + maatregel.kosten > BUDGET:
             # we stoppen nog niet met zoeken, misschien is een volgende maatregel goedkoper
             continue
@@ -46,6 +46,7 @@ def main():
 
     print("totale besparing:", totale_besparing)
     print("totale kosten:", totale_kosten)
+    print("geholpen huizen:", len(geselecteerde_huizen_en_maatregelen))
 
     header = [
         "ketel eff.",
@@ -58,6 +59,7 @@ def main():
         "isolatiew. na",
     ]
     maatregel_strs = [
+        "",
         "ketel",
         "gevel",
         "dak",
@@ -102,15 +104,17 @@ def main():
 
 def get_maatregel_combinaties(idx_huis: int, huis: Huis) -> List[HuisMaatregel]:
     maatregel_combinaties: List[HuisMaatregel] = []
-    for idx_maatregel in range(7):
+    for idx_maatregel in range(8):
         scenario = replace(huis)
         pas_maatregel_toe(scenario, idx_maatregel)
+        bruto_besparing = scenario.bereken_bruto_besparing()
         maatregel_combinaties.append(
             HuisMaatregel(
                 idx_huis,
                 idx_maatregel,
-                scenario.bereken_netto_besparing(),
+                bruto_besparing,
                 scenario.kosten,
+                (bruto_besparing / scenario.kosten) if bruto_besparing and scenario.kosten else 1,
             )
         )
     return maatregel_combinaties
@@ -118,21 +122,23 @@ def get_maatregel_combinaties(idx_huis: int, huis: Huis) -> List[HuisMaatregel]:
 
 def pas_maatregel_toe(huis: Huis, maatregel_idx: int):
     if maatregel_idx == 0:
-        huis.vervang_ketel()
+        pass
     elif maatregel_idx == 1:
-        huis.toepassen_gevelisolatie()
-    elif maatregel_idx == 2:
-        huis.toepassen_dakisolatie()
-    elif maatregel_idx == 3:
         huis.vervang_ketel()
+    elif maatregel_idx == 2:
         huis.toepassen_gevelisolatie()
+    elif maatregel_idx == 3:
+        huis.toepassen_dakisolatie()
     elif maatregel_idx == 4:
         huis.vervang_ketel()
-        huis.toepassen_dakisolatie()
-    elif maatregel_idx == 5:
         huis.toepassen_gevelisolatie()
+    elif maatregel_idx == 5:
+        huis.vervang_ketel()
         huis.toepassen_dakisolatie()
     elif maatregel_idx == 6:
+        huis.toepassen_gevelisolatie()
+        huis.toepassen_dakisolatie()
+    elif maatregel_idx == 7:
         huis.vervang_ketel()
         huis.toepassen_gevelisolatie()
         huis.toepassen_dakisolatie()
