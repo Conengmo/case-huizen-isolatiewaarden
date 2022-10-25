@@ -7,7 +7,9 @@ van gebouwen.
 ## Verkenning
 
 Ik begin met de opdracht lezen en begrijpen. Vervolgens met het maken van een Notebook om de data te
-verkennen. Zie notebooks/verkenning.ipynb. Ik maak plots van de verdeling van elk signaal.
+verkennen.
+Zie [notebooks/verkenning.ipynb](https://github.com/Conengmo/case-huizen-isolatiewaarden/blob/main/notebooks/verkenning.ipynb)
+. Ik maak plots van de verdeling van elk signaal.
 
 ### Opmerkelijke data: nulwaarden
 
@@ -88,11 +90,10 @@ de maatregelen binnen 10 jaar hun aanschaf moeten hebben terugverdiend.
 
 ### Conclusie besparingsfactor
 
-Op basis van een aantal twijfelachtige aannamens komen we tot een besparing per isolatiewaarde: € 26
+Op basis van een aantal twijfelachtige aannamens komen we tot een besparing per isolatiewaarde
+delta: € 26870.
 
-870.
-
-## Alternatief voor besparing: alleen isolatiewaarde
+### Alternatief voor besparing: alleen isolatiewaarde
 
 In plaats van te kijken wat voor een besparing een verandering in isolatiewaarde oplevert, kunnen we
 ook alleen naar de verandering in isolatiewaarde kijken. We kunnen een aanname doen over hoeveel
@@ -102,9 +103,9 @@ zin de moeite waard is, minder niet. Of dat we zeggen dat een huis van het 50e p
 dan buiten beschouwing laten.
 
 
-## Maatregelen per huis bepalen
+## Maatregelen per woning bepalen
 
-De eerste vraag is wat per huis de meest voordelige maatregelen zijn om te nemen en hoeveel dat
+De eerste vraag is wat per woning de meest voordelige maatregelen zijn om te nemen en hoeveel dat
 oplevert aan besparing.
 
 ### Afhankelijkheid maatregelen
@@ -120,9 +121,11 @@ beter geisoleerd huis.
 
 ### Uitkomst
 
-We kunnen nu de besparing berekenen voor elke combinatie van maatregelen. In de onderstaande tabel
-staan van iedere woning eerst de beginwaarden, gevolgd door de besparing in euros bij het toepassen
-van een of meerdere maatregelen, en uiteindelijk de beste combinatie van maatregelen.
+We kunnen nu de besparing berekenen voor elke combinatie van maatregelen. Voor het gebruikte script
+zie [bin/scenario_per_gebouw.py](https://github.com/Conengmo/case-huizen-isolatiewaarden/blob/main/bin/scenario_per_gebouw.py)
+. In de onderstaande tabel staan van iedere woning eerst de beginwaarden, gevolgd door de besparing
+in euros bij het toepassen van een of meerdere maatregelen, en uiteindelijk de beste combinatie van
+maatregelen.
 
 De uitkomst is in lijn met de verwachtingen:
 
